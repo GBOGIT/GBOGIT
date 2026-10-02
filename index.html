@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Relatório Fotográfico - Obras ACNSF</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important
+        }
+
+        :root {
+            --azul: #00437b;
+            --borda: #cbd5e1
+        }
+
+        body {
+            font-family: Inter,Segoe UI,Roboto,Arial,sans-serif;
+            margin: 0;
+            background: #f1f3f5;
+            color: #1f2937;
+            line-height: 1.5
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 16px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0,0,0,.06)
+        }
+
+        .btn {
+            background: #00437b;
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px
+        }
+
+            .btn.sec {
+                background: #fff;
+                color: #00437b;
+                border: 1.5px solid #00437b
+            }
+
+            .btn.danger {
+                background: #fff;
+                color: #ef4444;
+                border: 1.5px solid #ef4444
+            }
+
+        .btn-del {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 11px
+        }
+
+        .btn-add {
+            background: #fff;
+            color: var(--azul);
+            border: 1.5px solid var(--azul);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px
+        }
+
+        .header-dark {
+            background: var(--azul) !important;
+            color: #fff !important;
+            padding: 16px 22px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            border-radius: 10px 10px 0 0
+        }
+
+        .logo-box {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden
+        }
+
+        input.titulo {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 19px;
+            font-weight: 800;
+            width: 100%;
+            outline: none
+        }
+
+        input.subtitulo {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 12px;
+            width: 100%;
+            outline: none
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 14px
+        }
+
+        .report {
+            background: #fff;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column
+        }
+
+        .sec {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--borda)
+        }
+
+            .sec h2 {
+                font-size: 14px;
+                font-weight: 800;
+                margin: 0 0 14px 0
+            }
+
+        /* Na impressão, o título nunca fica órfão do conteúdo que o segue. */
+        @media print {
+            .keep-section {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            #sec-fotos h2 {
+                break-after: avoid-page !important;
+                page-break-after: avoid !important;
+            }
+
+            #sec-fotos .foto-grid {
+                break-before: avoid-page !important;
+                page-break-before: avoid !important;
+            }
+
+            #sec-fotos {
+                /* permite que as fotos ocupem páginas seguintes sem carregar o título sozinho */
+                break-inside: auto !important;
+                page-break-inside: auto !important;
+            }
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase
+        }
+
+        input.campo, textarea.campo {
+            width: 100%;
+            border: 1px solid var(--borda);
+            border-radius: 6px;
+            padding: 9px 12px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff
+        }
+
+        textarea.campo {
+            min-height: 60px;
+            resize: vertical
+        }
+
+        #obsLocal {
+            height: 38px !important;
+            min-height: 38px !important;
+            resize: none !important
+        }
+
+        .table-wrap {
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            overflow: hidden
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed
+        }
+
+        th {
+            background: #e8eef6 !important;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 9px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--borda) !important;
+            border-right: 1px solid var(--borda) !important
+        }
+
+        td {
+            border-bottom: 1px solid var(--borda) !important;
+            border-right: 1px solid var(--borda) !important;
+            padding: 8px 10px;
+            background: #fff;
+            font-size: 14px !important;
+            vertical-align: middle
+        }
+
+        #tab td:last-child {
+            padding: 0 !important;
+            text-align: center;
+            vertical-align: middle;
+            width: 32px
+        }
+
+        td[contenteditable]:empty:before {
+            content: attr(data-ph);
+            color: #94a3b8;
+            font-size: 13px
+        }
+
+        .foto-drop {
+            border: 1.5px dashed #9fbcd6;
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+            background: #f0f7ff;
+            cursor: pointer;
+            margin-bottom: 14px
+        }
+
+        .foto-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+            .foto-grid.uma-coluna {
+                grid-template-columns: 1fr;
+                gap: 20px
+            }
+
+        .foto-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+            display: flex;
+            flex-direction: column
+        }
+
+            .foto-card img {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 3 / 2;
+                object-fit: cover;
+                display: block;
+            }
+            /* CORRIGIDO COM ESPAÇO */
+            .foto-card.leg {
+                background: #fff;
+                padding: 10px 14px !important;
+                min-height: 38px;
+                display: flex;
+                align-items: center;
+                border-top: 1px solid #e2e8f0
+            }
+
+                .foto-card.leg:first-child {
+                    border-top: none;
+                    border-bottom: 1px solid #e2e8f0
+                }
+
+        .leg-text {
+            font-size: 11px !important;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+            display: block;
+            width: 100%;
+            padding-left: 2px !important
+        }
+
+        .tools {
+            position: absolute;
+            top: 6px;
+            right: 6px
+        }
+
+        .footer {
+            background: var(--azul) !important;
+            color: #b8cfe2 !important;
+            text-align: center;
+            padding: 13px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: auto
+        }
+
+            .footer span {
+                color: #fff
+            }
+
+        .keep-together {
+            break-inside: avoid;
+            page-break-inside: avoid
+        }
+
+        @media print {
+            @page {
+                margin: 10mm 8mm 15mm 8mm
+            }
+
+            html, body {
+                height: 100% !important;
+                background: #fff !important
+            }
+
+            .topbar, .foto-drop, .btn-del, .btn-add, .tools {
+                display: none !important
+            }
+
+            .wrap {
+                padding: 0 !important;
+                background: #fff !important;
+                max-width: none !important;
+                margin: 0 !important
+            }
+
+            .report {
+                border: none !important;
+                border-radius: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0 !important;
+            }
+
+            .print-spacer {
+                display: block !important;
+                flex: 0 0 var(--print-spacer-height, 0px) !important;
+                height: var(--print-spacer-height, 0px) !important;
+            }
+
+            .footer {
+                display: block !important;
+                margin-top: 0 !important;
+                background: #0c4160 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Cada foto e sua legenda permanecem juntas na impressão */
+            .foto-card {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            #sec-fotos {
+                break-inside: auto !important;
+                page-break-inside: auto !important;
+            }
+
+            .foto-card img {
+                aspect-ratio: 3 / 2 !important;
+                object-fit: cover !important;
+            }
+        }
+
+        .print-spacer {
+            display: none
+        }
+
+        @media(max-width:700px) {
+            .grid2, .foto-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+
+
+</head>
+<body>
+    <div class="topbar">
+        <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
+        <button class="btn sec" onclick="salvarHTML()">💾 Salvar em HTML</button>
+        <button class="btn danger" onclick="limparTudo()">🗑️ Limpar tudo</button>
+        <button class="btn sec" id="btnCol">📐 1 coluna / 2 colunas</button>
+    </div>
+    <div class="wrap">
+        <div class="report">
+            <div class="header-dark">
+                <div class="logo-box"><img src="logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain"></div>
+                <div style="flex:1"><input id="titulo" class="titulo" value="Relatório Fotográfico"><input id="subtitulo" class="subtitulo" placeholder="Subtítulo - ex: Inspeção Obra Aura"></div>
+            </div>
+            <div class="sec">
+                <h2>1. Informações do Local</h2>
+                <div class="grid2"><div><label>Obra / Sigla</label><input id="obra" class="campo" placeholder="Ex.: Estrada do Português"></div><div><label>Responsável</label><input id="resp" class="campo" placeholder="Ex.: João Silva"></div></div>
+                <div style="margin-top:12px"><label>Endereço / Local</label><input id="endereco" class="campo" placeholder="Rua, número, bairro"></div>
+                <div class="grid2" style="margin-top:12px"><div><label>Data da vistoria</label><input type="date" id="dataV" class="campo"></div><div><label>Próxima vistoria</label><input type="date" id="proxV" class="campo"></div></div>
+                <div style="margin-top:12px"><label>Observações</label><input id="obsLocal" class="campo" placeholder="Clima, acesso..."></div>
+            </div>
+            <div class="sec"><h2>2. Objetivo</h2><textarea id="objetivo" class="campo" placeholder="Verificar condições..."></textarea></div>
+            <div class="sec">
+                <h2>3. Diagnóstico da Visita</h2>
+                <div class="table-wrap"><table id="tab"><thead><tr><th style="width:28%">Item</th><th style="width:36%">Condição</th><th style="width:36%">Ação</th><th style="width:32px"></th></tr></thead><tbody><tr><td contenteditable="true" data-ph="Ex.: Cobertura"></td><td contenteditable="true" data-ph="Ex.: Corrosão"></td><td contenteditable="true" data-ph="Ex.: Pintura"></td><td style="text-align:center"><button class="btn-del del-row">X</button></td></tr></tbody></table></div>
+                <button class="btn-add" id="btnAddRow" style="margin-top:10px">+ Adicionar linha</button>
+            </div>
+
+            <div class="sec" id="sec-fotos">
+                <h2>4. Registro Fotográfico</h2>
+                <div class="foto-drop" id="drop">
+                    <b>📸 Clique ou arraste as fotos aqui</b><br><small>JPG / PNG</small>
+                    <input type="file" id="f" multiple accept="image/*" style="display:none">
+                </div>
+                <div class="foto-grid" id="grid"></div>
+            </div>
+
+            <div class="sec sec-small keep-section"><h2>5. Informações do Serviço</h2><textarea id="infoServ" class="campo"></textarea></div>
+            <div class="sec sec-small keep-section"><h2>6. Conclusão</h2><textarea id="concl" class="campo"></textarea></div>
+
+            <div class="print-spacer"></div>
+
+            <div class="footer">&copy; <span id="ano"></span> — Departamento de Obras • <span id="fd"></span></div>
+
+        </div> <!-- fecha report -->
+    </div> <!-- fecha wrap -->
+    <script>
+        document.getElementById('ano').textContent = new Date().getFullYear();
+        document.getElementById('fd').textContent = new Date().toLocaleDateString('pt-BR');
+        var h = new Date().toISOString().slice(0, 10);
+        document.getElementById('dataV').value = h;
+        function salvarHTML() {
+            document.querySelectorAll('input.campo, input.titulo, input.subtitulo').forEach(function (i) { i.setAttribute('value', i.value); });
+            document.querySelectorAll('textarea.campo').forEach(function (ta) { ta.textContent = ta.value; });
+            var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            var nome = (document.getElementById('obra').value || 'Relatorio') + '_' + h;
+            var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome.replace(/[^a-zA-Z0-9_-]/g, '_') + '.html';
+            document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 500);
+        }
+        function limparTudo() {
+            if (!confirm('Limpar tudo?')) return;
+            document.querySelectorAll('input.campo, textarea.campo').forEach(function (el) { el.value = ''; });
+            document.getElementById('subtitulo').value = ''; document.getElementById('obra').value = ''; document.getElementById('endereco').value = '';
+            document.getElementById('grid').innerHTML = ''; document.getElementById('dataV').value = h; document.getElementById('proxV').value = '';
+            document.querySelectorAll('#tab tbody tr').forEach(function (tr, i) { if (i > 0) tr.remove(); });
+            document.querySelectorAll('#tab td[contenteditable]').forEach(function (td) { td.textContent = ''; });
+        }
+        document.getElementById('btnAddRow').addEventListener('click', function () {
+            var tb = document.querySelector('#tab tbody');
+            var tr = document.createElement('tr');
+            tr.innerHTML = `<td contenteditable="true" data-ph="Ex.: Cobertura"></td><td contenteditable="true" data-ph="Ex.: Corrosão"></td><td contenteditable="true" data-ph="Ex.: Pintura"></td><td style="padding:0!important;text-align:center;vertical-align:middle"><button class="btn-del del-row" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:22px">X</button></td>`;
+            tb.appendChild(tr);
+            tr.querySelector('.del-row').addEventListener('click', function () { tr.remove(); });
+        });
+        document.querySelectorAll('.del-row').forEach(function (b) { b.addEventListener('click', function () { b.closest('tr').remove(); }); });
+        var grid = document.getElementById('grid'), inp = document.getElementById('f'), drop = document.getElementById('drop');
+        drop.addEventListener('click', function () { inp.click(); });
+        drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.style.background = '#dbeafe'; });
+        drop.addEventListener('dragleave', function () { drop.style.background = '#f0f7ff'; });
+        drop.addEventListener('drop', function (e) { e.preventDefault(); drop.style.background = '#f0f7ff'; handle(e.dataTransfer.files); });
+        inp.addEventListener('change', function () { handle(inp.files); });
+        function handle(files) {
+            Array.from(files).forEach(function (file) {
+                var r = new FileReader(); r.onload = function (e) {
+                    var d = document.createElement('div'); d.className = 'foto-card';
+                    var name = file.name.replace(/\.[^/.]+$/, ''); var idx = grid.children.length + 1;
+                    d.innerHTML = '<div class="tools"><button class="btn-del">X</button></div><img src="' + e.target.result + '"><div class="leg"><span class="leg-text">Imagem ' + idx + ' : ' + name + '</span></div>';
+                    grid.appendChild(d); d.querySelector('.btn-del').addEventListener('click', function () { d.remove(); });
+                }; r.readAsDataURL(file);
+            });
+        }
+        document.getElementById('btnCol').addEventListener('click', function () {
+            document.getElementById('grid').classList.toggle('uma-coluna');
+        });
+        /*
+         * Impressão em 1 coluna:
+         * calcula o espaço real que resta na página onde começa o Registro
+         * Fotográfico e distribui esse espaço igualmente entre as duas fotos.
+         * Assim, o título da seção é considerado e as duas fotos ficam na
+         * mesma página sempre que houver espaço físico para isso.
+         */
+        var printAdjustTimer = null;
+        var savedPhotoStyles = new Map();
+        var savedPrintSpacerHeight = '';
+
+        function salvarAlturaRodape() {
+            var spacer = document.querySelector('.print-spacer');
+            if (spacer) savedPrintSpacerHeight = spacer.style.getPropertyValue('--print-spacer-height');
+        }
+
+        function restaurarAlturaRodape() {
+            var spacer = document.querySelector('.print-spacer');
+            if (!spacer) return;
+            if (savedPrintSpacerHeight) spacer.style.setProperty('--print-spacer-height', savedPrintSpacerHeight);
+            else spacer.style.removeProperty('--print-spacer-height');
+            savedPrintSpacerHeight = '';
+        }
+
+        function ajustarRodapeParaUltimaPagina() {
+            var report = document.querySelector('.report');
+            var spacer = document.querySelector('.print-spacer');
+            var footer = document.querySelector('.footer');
+            if (!report || !spacer || !footer) return;
+
+            /*
+             * A @page usa 10mm no topo e 15mm no rodapé. A área útil é,
+             * portanto, 272mm. O report começa no topo da área imprimível.
+             * Calculamos em coordenadas reais do documento, sem usar a posição
+             * do próprio rodapé como referência.
+             */
+            var pxPerMm = 96 / 25.4;
+            var pageHeight = 297 * pxPerMm;
+            var topMargin = 10 * pxPerMm;
+            var bottomMargin = 15 * pxPerMm;
+            var usable = pageHeight - topMargin - bottomMargin;
+
+            var reportTop = report.getBoundingClientRect().top + window.scrollY;
+            var contentBottom = spacer.getBoundingClientRect().top + window.scrollY;
+            var footerH = footer.getBoundingClientRect().height;
+
+            // Como o report começa dentro da área imprimível, cada página
+            // acrescenta exatamente a área útil da folha.
+            var relativeContentBottom = Math.max(0, contentBottom - reportTop);
+            var pageIndex = Math.max(0, Math.ceil(relativeContentBottom / usable) - 1);
+            var lastPageBottom = reportTop + (pageIndex + 1) * usable;
+
+            // O rodapé termina no fim da área útil da última página.
+            var desiredSpacer = lastPageBottom - contentBottom - footerH;
+            if (!isFinite(desiredSpacer) || desiredSpacer < 0) desiredSpacer = 0;
+
+            spacer.style.setProperty('--print-spacer-height', Math.floor(desiredSpacer) + 'px');
+        }
+
+        function salvarEstilosFotos() {
+            savedPhotoStyles.clear();
+            document.querySelectorAll('#grid .foto-card img').forEach(function (img) {
+                savedPhotoStyles.set(img, {
+                    height: img.style.height,
+                    aspectRatio: img.style.aspectRatio,
+                    objectFit: img.style.objectFit
+                });
+            });
+        }
+
+        function restaurarEstilosFotos() {
+            savedPhotoStyles.forEach(function (styles, img) {
+                img.style.height = styles.height;
+                img.style.aspectRatio = styles.aspectRatio;
+                img.style.objectFit = styles.objectFit;
+            });
+            savedPhotoStyles.clear();
+        }
+
+        function ajustarFotosParaImpressao() {
+            var sec = document.getElementById('sec-fotos');
+            var grid = document.getElementById('grid');
+            if (!sec || !grid || !grid.classList.contains('uma-coluna')) return;
+
+            var cards = Array.from(grid.querySelectorAll('.foto-card'));
+            if (!cards.length) return;
+
+            var imgs = cards.map(function (card) { return card.querySelector('img'); }).filter(Boolean);
+            if (!imgs.length) return;
+
+            var mmPx = 96 / 25.4;
+            var pageHeight = 297 * mmPx;
+            var marginTop = 10 * mmPx;
+            var marginBottom = 15 * mmPx;
+            var usableHeight = pageHeight - marginTop - marginBottom;
+
+            var report = document.querySelector('.report');
+            var reportTop = report ? report.getBoundingClientRect().top + window.scrollY : 0;
+            var secTop = sec.getBoundingClientRect().top + window.scrollY;
+            var relative = Math.max(0, secTop - reportTop - marginTop);
+            var pageIndex = Math.floor(relative / usableHeight);
+            var pageStart = reportTop + marginTop + pageIndex * usableHeight;
+            var remaining = pageStart + usableHeight - secTop;
+
+            var cs = getComputedStyle(sec);
+            var paddingTop = parseFloat(cs.paddingTop) || 0;
+            var paddingBottom = parseFloat(cs.paddingBottom) || 0;
+
+            var title = sec.querySelector('h2');
+            var titleH = title ? title.getBoundingClientRect().height : 0;
+            var titleCS = title ? getComputedStyle(title) : null;
+            var titleMB = titleCS ? (parseFloat(titleCS.marginBottom) || 0) : 0;
+
+            var gridCS = getComputedStyle(grid);
+            var gap = parseFloat(gridCS.rowGap || gridCS.gap) || 0;
+
+            var legendH = 0;
+            cards.forEach(function (card) {
+                var leg = card.querySelector('.leg');
+                if (leg) legendH = Math.max(legendH, leg.getBoundingClientRect().height);
+            });
+
+            var fixed = paddingTop + titleH + titleMB + paddingBottom +
+                (cards.length > 1 ? gap * (cards.length - 1) : 0) +
+                legendH * cards.length + 2;
+
+            var imageH = (remaining - fixed) / cards.length;
+            var width = imgs[0].getBoundingClientRect().width;
+            var maxByRatio = width * 2 / 3;
+
+            imageH = Math.min(imageH, maxByRatio);
+            imageH = Math.max(120, Math.floor(imageH));
+
+            imgs.forEach(function (img) {
+                img.style.height = imageH + 'px';
+                img.style.aspectRatio = 'auto';
+                img.style.objectFit = 'cover';
+            });
+        }
+
+        window.addEventListener('beforeprint', function () {
+            salvarEstilosFotos();
+            salvarAlturaRodape();
+            if (printAdjustTimer) clearTimeout(printAdjustTimer);
+            printAdjustTimer = setTimeout(function () {
+                printAdjustTimer = null;
+                ajustarFotosParaImpressao();
+                requestAnimationFrame(function () {
+                    ajustarRodapeParaUltimaPagina();
+                });
+            }, 50);
+        });
+
+        window.addEventListener('afterprint', function () {
+            if (printAdjustTimer) {
+                clearTimeout(printAdjustTimer);
+                printAdjustTimer = null;
+            }
+            restaurarEstilosFotos();
+            restaurarAlturaRodape();
+        });
+
+        var printMedia = window.matchMedia('print');
+        if (printMedia.addEventListener) {
+            printMedia.addEventListener('change', function (e) {
+                if (e.matches) {
+                    salvarEstilosFotos();
+                    if (printAdjustTimer) clearTimeout(printAdjustTimer);
+                    printAdjustTimer = setTimeout(function () {
+                        printAdjustTimer = null;
+                        ajustarFotosParaImpressao();
+                        requestAnimationFrame(function () {
+                            ajustarRodapeParaUltimaPagina();
+                        });
+                    }, 50);
+                } else {
+                    if (printAdjustTimer) {
+                        clearTimeout(printAdjustTimer);
+                        printAdjustTimer = null;
+                    }
+                    restaurarEstilosFotos();
+                    restaurarAlturaRodape();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

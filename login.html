@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso - Login</title>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+body{background:#f7f9fc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;width:100%;max-width:390px;border-radius:20px;padding:32px 28px;box-shadow:0 20px 60px rgba(15,40,80,.12),0 2px 10px rgba(15,40,80,.06)}
+h1{text-align:center;font-size:18px;font-weight:700;color:#111827}
+.sub{text-align:center;font-size:13px;color:#6b7280;margin:6px 0 18px}
+.alert{background:#e8f1ff;color:#2a5fbe;font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:18px}
+label{font-size:11px;font-weight:700;color:#475569;letter-spacing:.6px;margin:14px 0 6px;display:block}
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-wrap .icon{position:absolute;left:12px;color:#94a3b8;font-size:14px}
+.input-wrap input{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 40px 12px 36px;font-size:14px;outline:none;transition:.2s}
+.input-wrap input:focus{border-color:#2f66d4;background:#fff;box-shadow:0 0 0 4px rgba(47,102,212,.1)}
+.eye{position:absolute;right:12px;cursor:pointer;color:#94a3b8}
+.row{display:flex;justify-content:space-between;align-items:center;margin:14px 0 18px}
+.check{display:flex;align-items:center;gap:6px;font-size:13px;color:#475569}
+.check input{width:15px;height:15px}
+.link{font-size:13px;color:#2f57c1;font-weight:600;text-decoration:none;cursor:pointer}
+.btn{width:100%;background:#2b5ebf;color:#fff;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 20px rgba(43,94,191,.3);transition:.2s}
+.btn:hover{background:#234ca0}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.footer{text-align:center;margin-top:22px;font-size:11px;color:#a0aec0;display:flex;align-items:center;justify-content:center;gap:6px}
+#msg{margin-top:12px;font-size:13px;text-align:center;color:#c53030;display:none}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Acesse sua conta</h1>
+  <p class="sub">Entre com seu e-mail cadastrado para continuar</p>
+  
+  <div class="alert">Faça login para continuar.</div>
+
+  <label>E-MAIL</label>
+  <div class="input-wrap">
+    <span class="icon">✉️</span>
+    <input id="email" type="email" placeholder="voce@empresa.com" autocomplete="email">
+  </div>
+
+  <label>SENHA</label>
+  <div class="input-wrap">
+    <span class="icon">🔒</span>
+    <input id="senha" type="password" placeholder="••••••••" autocomplete="current-password">
+    <span class="eye" onclick="toggle()">👁️</span>
+  </div>
+
+  <div class="row">
+    <label class="check"><input type="checkbox" id="lembrar"> Lembrar de mim</label>
+    <a class="link" onclick="recuperar()">Esqueci minha senha</a>
+  </div>
+
+  <button class="btn" id="btnEntrar" onclick="entrar()">Entrar</button>
+  <div id="msg"></div>
+</div>
+
+<div style="position:fixed;bottom:18px;width:100%;text-align:center" class="footer">
+  🛡️ Conexão segura e criptografada - © 2026 Departamento de obras
+</div>
+
+<script>
+const DOMINIOS = ["@arautos.org.br","@acnsf.org.br","@arautos.com.br","@acnsf.com.br"];
+
+function toggle(){
+  const i = document.getElementById('senha');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+function showMsg(t){
+  const m = document.getElementById('msg');
+  m.style.display='block'; m.innerText=t;
+}
+function validarDominio(email){
+  email = email.toLowerCase();
+  return DOMINIOS.some(d => email.endsWith(d));
+}
+function entrar(){
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  if(!email || !senha){ showMsg("Preencha e-mail e senha."); return; }
+  if(!validarDominio(email)){ showMsg("Acesso permitido apenas para e-mails corporativos autorizados."); return; }
+
+  const btn = document.getElementById('btnEntrar');
+  btn.disabled=true; btn.innerText="Entrando...";
+
+  netlifyIdentity.login({email, password: senha})
+    .then(()=> { window.location.href = "/"; })
+    .catch(err => {
+      btn.disabled=false; btn.innerText="Entrar";
+      showMsg(err.message || "E-mail ou senha incorretos.");
+    });
+}
+function recuperar(){
+  const email = document.getElementById('email').value.trim();
+  if(!email || !validarDominio(email)){ showMsg("Digite seu e-mail corporativo para recuperar."); return; }
+  netlifyIdentity.forgotPassword(email);
+  showMsg("Se o e-mail existir, enviamos o link de recuperação.");
+  document.getElementById('msg').style.color="#2b5ebf";
+}
+netlifyIdentity.on('init', user => { if(user) window.location.href="/"; });
+netlifyIdentity.init();
+</script>
+</body>
+</html>
