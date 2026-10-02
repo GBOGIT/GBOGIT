@@ -7,12 +7,12 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
 body{background:#f7f9fc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;width:100%;max-width:390px;border-radius:20px;padding:32px 28px;box-shadow:0 20px 60px rgba(15,40,80,.12)}
-h1{text-align:center;font-size:18px;font-weight:700}
-.sub{text-align:center;font-size:13px;color:#6b7280;margin:6px 0 18px}
-.alert{background:#e8f1ff;color:#2a5fbe;font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:18px}
-label{font-size:11px;font-weight:700;color:#475569;letter-spacing:.6px;margin:14px 0 6px;display:block}
-input{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:14px;outline:none}
+.card{background:#fff;width:100%;max-width:390px;border-radius:20px;padding:32px 28px;box-shadow:0 20px 60px rgba(15,40,80,.12);text-align:center}
+h1{font-size:18px;font-weight:700}
+.sub{font-size:13px;color:#6b7280;margin:6px 0 18px}
+.alert{background:#e8f1ff;color:#2a5fbe;font-size:13px;padding:10px 14px;border-radius:10px;margin-bottom:18px;text-align:left}
+label{font-size:11px;font-weight:700;color:#475569;letter-spacing:.6px;margin:14px 0 6px;display:block;text-align:left}
+input{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:14px;outline:none;text-align:left}
 .btn{width:100%;background:#2b5ebf;color:#fff;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;margin-top:16px}
 #msg{margin-top:12px;font-size:13px;text-align:center;display:none}
 </style>
@@ -20,67 +20,71 @@ input{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;
 <body>
 <div class="card">
   <h1 id="titulo">Crie sua senha</h1>
-  <p class="sub">Você foi convidado. Defina uma senha para continuar</p>
-  <div class="alert">Defina sua senha agora</div>
+  <p class="sub" id="sub">Defina sua senha para continuar</p>
+  <div class="alert" id="alerta">Defina sua senha agora</div>
   <label>E-MAIL</label>
-  <input id="email" type="email" placeholder="seu e-mail">
+  <input id="email" type="email">
   <label>SENHA</label>
-  <input id="senha" type="password" placeholder="Crie uma senha forte">
+  <input id="senha" type="password" placeholder="Mínimo 6 caracteres">
   <button class="btn" id="btn">Criar senha e entrar</button>
   <div id="msg"></div>
 </div>
 <script>
-let invite_token = null;
-if(window.location.hash.includes('invite_token')){
-  invite_token = window.location.hash.split('invite_token=')[1].split('&')[0];
-  const emailFromUrl = new URLSearchParams(window.location.search).get('email') || '';
-  if(emailFromUrl) document.getElementById('email').value = emailFromUrl;
-}
+let token = location.hash.includes('invite_token')? location.hash.split('invite_token=')[1].split('&')[0] : null;
 const btn = document.getElementById('btn');
 const msg = document.getElementById('msg');
-function show(t,ok){msg.style.display='block';msg.innerText=t;msg.style.color=ok?'#2b5ebf':'#c53030';}
+function show(t, ok){msg.style.display='block';msg.innerText=t;msg.style.color=ok?'#059669':'#c53030';}
 
 btn.onclick = async () => {
-  const email = document.getElementById('email').value.trim().toLowerCase();
-  const password = document.getElementById('senha').value;
-  if(!email ||!password || password.length<6){show('Preencha e-mail e senha (6+ caracteres)');return;}
-  btn.disabled=true; btn.innerText='Criando...';
-  try{
-    const res = await fetch(`/.netlify/identity/verify`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({token: invite_token, type:'signup', password})
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('senha').value;
+  if(pass.length < 6){ show('Senha tem que ter 6 caracteres'); return; }
+  btn.disabled=true; btn.innerText='Criando senha...';
+
+  try {
+    // 1. Confirma o convite
+    const verify = await fetch('/.netlify/identity/verify', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token: token, type: 'signup', password: pass })
     });
-    if(!res.ok) throw new Error(await res.text());
-    show('Conta criada! Entrando...',true);
-    const loginRes = await fetch(`/.netlify/identity/token`,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await loginRes.json();
-    if(data.access_token){
-      localStorage.setItem('gotrue.user', JSON.stringify(data));
-      window.location.href="/";
+    if(!verify.ok){
+      const txt = await verify.text();
+      if(txt.includes('already confirmed')) throw new Error('Convite já usado. Faça login normal.');
+      throw new Error(txt);
     }
-  }catch(e){
-    show('Erro: ' + e.message + ' | Solicite novo acesso ao administrador');
-    btn.disabled=false; btn.innerText='Criar senha e entrar';
+    show('✅ Senha criada com sucesso! Redirecionando para o login...', true);
+    setTimeout(()=>{ window.location.href = '/login.html'; }, 2000);
+  } catch(e){
+    console.error(e);
+    // Se já foi confirmado, manda pro login
+    if(e.message.includes('já usado') || e.message.includes('User already confirmed')){
+      show('Essa conta já tem senha. Vá para o login.', true);
+      setTimeout(()=>{ window.location.href='/login.html'; }, 2000);
+    } else {
+      show('Erro: ' + e.message + '. Peça um novo convite em Identity > Invite.');
+      btn.disabled=false; btn.innerText='Tentar de novo';
+    }
   }
 };
-if(!invite_token){
+
+// Se não tem token, é login normal
+if(!token){
   document.getElementById('titulo').innerText='Acesse sua conta';
-  document.querySelector('.sub').innerText='Entre com seu e-mail cadastrado';
+  document.getElementById('sub').innerText='Entre com seu e-mail cadastrado';
+  document.getElementById('alerta').innerText='Faça login para continuar';
   btn.innerText='Entrar';
   btn.onclick = async () => {
     const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('senha').value;
+    const pass = document.getElementById('senha').value;
     btn.disabled=true; btn.innerText='Entrando...';
     try{
-      const r = await fetch(`/.netlify/identity/token`,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password})});
+      const r = await fetch('/.netlify/identity/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email, password: pass})});
       const d = await r.json();
-      if(d.access_token){ localStorage.setItem('gotrue.user', JSON.stringify(d)); window.location.href="/"; }
-      else throw new Error('Senha incorreta');
-    }catch{ show('E-mail ou senha incorretos'); btn.disabled=false; btn.innerText='Entrar'; }
+      if(!d.access_token) throw new Error('Senha incorreta');
+      localStorage.setItem('gotrue.user', JSON.stringify(d));
+      window.location.href='/';
+    }catch(err){ show('E-mail ou senha incorretos'); btn.disabled=false; btn.innerText='Entrar'; }
   };
 }
 </script>
