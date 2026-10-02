@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acesso</title>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
 body{background:#f7f9fc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -22,18 +21,21 @@ input{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;
 <div class="card">
   <h1 id="titulo">Crie sua senha</h1>
   <p class="sub">Você foi convidado. Defina uma senha para continuar</p>
-  <div class="alert" id="alerta">Defina sua senha agora</div>
+  <div class="alert">Defina sua senha agora</div>
   <label>E-MAIL</label>
-  <input id="email" type="email" value="guilherme.boaventura@acnsf.org.br">
+  <input id="email" type="email" placeholder="seu e-mail">
   <label>SENHA</label>
   <input id="senha" type="password" placeholder="Crie uma senha forte">
   <button class="btn" id="btn">Criar senha e entrar</button>
   <div id="msg"></div>
 </div>
 <script>
-let invite_token = window.location.hash.split('invite_token=')[1];
-if(invite_token) invite_token = invite_token.split('&')[0];
-
+let invite_token = null;
+if(window.location.hash.includes('invite_token')){
+  invite_token = window.location.hash.split('invite_token=')[1].split('&')[0];
+  const emailFromUrl = new URLSearchParams(window.location.search).get('email') || '';
+  if(emailFromUrl) document.getElementById('email').value = emailFromUrl;
+}
 const btn = document.getElementById('btn');
 const msg = document.getElementById('msg');
 function show(t,ok){msg.style.display='block';msg.innerText=t;msg.style.color=ok?'#2b5ebf':'#c53030';}
@@ -41,32 +43,46 @@ function show(t,ok){msg.style.display='block';msg.innerText=t;msg.style.color=ok
 btn.onclick = async () => {
   const email = document.getElementById('email').value.trim().toLowerCase();
   const password = document.getElementById('senha').value;
-  if(!password || password.length<6){show('Senha precisa ter 6 caracteres no mínimo');return;}
+  if(!email ||!password || password.length<6){show('Preencha e-mail e senha (6+ caracteres)');return;}
   btn.disabled=true; btn.innerText='Criando...';
   try{
-    // Método oficial do GoTrue
-    const res = await fetch(`/.netlify/identity/verify?type=signup&token=${invite_token}`, {
+    const res = await fetch(`/.netlify/identity/verify`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
+      body: JSON.stringify({token: invite_token, type:'signup', password})
     });
-    if(!res.ok){ const err = await res.text(); throw new Error(err); }
-    show('Senha criada! Entrando...',true);
-    // Agora faz login automatico
+    if(!res.ok) throw new Error(await res.text());
+    show('Conta criada! Entrando...',true);
     const loginRes = await fetch(`/.netlify/identity/token`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({email, password})
     });
     const data = await loginRes.json();
-    if(data.access_token){ window.location.href="/"; }
-    else{ window.location.href="/login.html"; }
+    if(data.access_token){
+      localStorage.setItem('gotrue.user', JSON.stringify(data));
+      window.location.href="/";
+    }
   }catch(e){
-    console.log(e);
-    show('Link expirado ou já usado. Vá em Identity > Invite e reenvie.');
+    show('Erro: ' + e.message + ' | Solicite novo acesso ao administrador');
     btn.disabled=false; btn.innerText='Criar senha e entrar';
   }
 };
+if(!invite_token){
+  document.getElementById('titulo').innerText='Acesse sua conta';
+  document.querySelector('.sub').innerText='Entre com seu e-mail cadastrado';
+  btn.innerText='Entrar';
+  btn.onclick = async () => {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('senha').value;
+    btn.disabled=true; btn.innerText='Entrando...';
+    try{
+      const r = await fetch(`/.netlify/identity/token`,{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, password})});
+      const d = await r.json();
+      if(d.access_token){ localStorage.setItem('gotrue.user', JSON.stringify(d)); window.location.href="/"; }
+      else throw new Error('Senha incorreta');
+    }catch{ show('E-mail ou senha incorretos'); btn.disabled=false; btn.innerText='Entrar'; }
+  };
+}
 </script>
 </body>
 </html>
