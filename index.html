@@ -460,6 +460,33 @@
 })();
 </script>
 <body>
+    <div style="position:fixed; top:12px; right:12px; z-index:9999; display:flex; gap:8px; align-items:center; background:#fff; padding:6px 12px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1);">
+  <span id="userEmail" style="font-size:12px; color:#64748b; font-family:Inter,sans-serif;"></span>
+  <button onclick="fazerLogout()" style="background:#ef4444; color:#fff; border:0; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">Sair</button>
+</div>
+
+<script>
+  function fazerLogout(){
+    if(confirm('Deseja sair do relatório?')){
+      localStorage.removeItem('gotrue.user');
+      localStorage.removeItem('nf_jwt');
+      localStorage.removeItem('gotrue.user:');
+      if(window.netlifyIdentity){ 
+        try{ window.netlifyIdentity.logout(); }catch(e){}
+      }
+      window.location.href = '/login.html';
+    }
+  }
+  // Mostra o e-mail de quem está logado
+  try{
+    const u = JSON.parse(localStorage.getItem('gotrue.user'));
+    if(u && u.email){
+      document.getElementById('userEmail').innerText = u.email;
+    } else if(u && u.token && u.token.email){
+      document.getElementById('userEmail').innerText = u.token.email;
+    }
+  }catch(e){}
+</script>
     <div class="topbar">
         <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
         <button class="btn sec" onclick="salvarHTML()">💾 Salvar em HTML</button>
