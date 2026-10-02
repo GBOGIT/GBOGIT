@@ -418,15 +418,46 @@
 
 
 </head>
-   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-netlifyIdentity.on('init', user => {
-  if (!user) {
-    // IMPORTANTE: leva o token do convite junto
-    window.location.href = "/login.html" + window.location.hash;
+// Proteção inteligente - verifica localStorage direto
+(function(){
+  const userStr = localStorage.getItem('gotrue.user');
+  const hasToken = localStorage.getItem('nf_jwt');
+  const hash = window.location.hash;
+
+  // Se tem token de convite, deixa passar e manda pro login com token
+  if(hash.includes('invite_token') || hash.includes('recovery_token')){
+    window.location.href = "/login.html" + hash;
+    return;
   }
-});
-netlifyIdentity.init();
+
+  // Se NÃO tem usuário logado, manda pro login
+  // Mas só depois de 1 segundo pra dar tempo do widget carregar
+  setTimeout(() => {
+    try{
+      const user = userStr ? JSON.parse(userStr) : null;
+      const isLogged = (user && user.access_token) || hasToken;
+      if(!isLogged){
+        // Verifica também pelo widget oficial
+        if(window.netlifyIdentity){
+          const widgetUser = window.netlifyIdentity.currentUser();
+          if(!widgetUser){
+            window.location.href = "/login.html";
+          }
+        } else {
+          window.location.href = "/login.html";
+        }
+      }
+    }catch(e){
+      window.location.href = "/login.html";
+    }
+  }, 1000);
+
+  if(window.netlifyIdentity){
+    window.netlifyIdentity.init();
+  }
+})();
 </script>
 <body>
     <div class="topbar">
