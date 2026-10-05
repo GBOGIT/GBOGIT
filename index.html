@@ -125,7 +125,9 @@
         }
 
         .wrap {
-            max-width: 980px;
+            /* O .report fica com exatamente 194mm de largura útil, igual à impressão. */
+            width: min(calc(194mm + 28px), calc(100vw - 28px));
+            max-width: calc(194mm + 28px);
             margin: 0 auto;
             padding: 14px
         }
@@ -156,17 +158,14 @@
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
             }
-
             #sec-fotos h2 {
                 break-after: avoid-page !important;
                 page-break-after: avoid !important;
             }
-
             #sec-fotos .foto-grid {
                 break-before: avoid-page !important;
                 page-break-before: avoid !important;
             }
-
             #sec-fotos {
                 /* permite que as fotos ocupem páginas seguintes sem carregar o título sozinho */
                 break-inside: auto !important;
@@ -293,20 +292,20 @@
                 object-fit: cover;
                 display: block;
             }
-            /* CORRIGIDO COM ESPAÇO */
-            .foto-card.leg {
-                background: #fff;
-                padding: 10px 14px !important;
-                min-height: 38px;
-                display: flex;
-                align-items: center;
-                border-top: 1px solid #e2e8f0
-            }
+        /* CORRIGIDO COM ESPAÇO */
+        .foto-card.leg {
+            background: #fff;
+            padding: 10px 14px !important;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #e2e8f0
+        }
 
-                .foto-card.leg:first-child {
-                    border-top: none;
-                    border-bottom: 1px solid #e2e8f0
-                }
+            .foto-card.leg:first-child {
+                border-top: none;
+                border-bottom: 1px solid #e2e8f0
+            }
 
         .leg-text {
             font-size: 11px !important;
@@ -355,7 +354,9 @@
                 background: #fff !important
             }
 
-            .topbar, .foto-drop, .btn-del, .btn-add, .tools {
+            .topbar, .foto-drop, .btn-del, .btn-add, .tools,
+            .btn-sair, .sair, .logout, [id*="sair"], [class*="sair"],
+            [data-action="logout"], [data-action="sair"] {
                 display: none !important
             }
 
@@ -369,8 +370,8 @@
             .report {
                 border: none !important;
                 border-radius: 0 !important;
-                display: flex !important;
-                flex-direction: column !important;
+                /* Fluxo normal deixa o paginador respeitar exatamente o spacer. */
+                display: block !important;
                 min-height: 0 !important;
             }
 
@@ -386,6 +387,12 @@
                 background: #0c4160 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+
+            /* Textareas são expandidos pelo JS antes da impressão para que nenhuma linha seja cortada. */
+            textarea.campo {
+                overflow: hidden !important;
+                resize: none !important;
             }
 
             /* Cada foto e sua legenda permanecem juntas na impressão */
@@ -418,75 +425,7 @@
 
 
 </head>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script>
-// Proteção inteligente - verifica localStorage direto
-(function(){
-  const userStr = localStorage.getItem('gotrue.user');
-  const hasToken = localStorage.getItem('nf_jwt');
-  const hash = window.location.hash;
-
-  // Se tem token de convite, deixa passar e manda pro login com token
-  if(hash.includes('invite_token') || hash.includes('recovery_token')){
-    window.location.href = "/login.html" + hash;
-    return;
-  }
-
-  // Se NÃO tem usuário logado, manda pro login
-  // Mas só depois de 1 segundo pra dar tempo do widget carregar
-  setTimeout(() => {
-    try{
-      const user = userStr ? JSON.parse(userStr) : null;
-      const isLogged = (user && user.access_token) || hasToken;
-      if(!isLogged){
-        // Verifica também pelo widget oficial
-        if(window.netlifyIdentity){
-          const widgetUser = window.netlifyIdentity.currentUser();
-          if(!widgetUser){
-            window.location.href = "/login.html";
-          }
-        } else {
-          window.location.href = "/login.html";
-        }
-      }
-    }catch(e){
-      window.location.href = "/login.html";
-    }
-  }, 1000);
-
-  if(window.netlifyIdentity){
-    window.netlifyIdentity.init();
-  }
-})();
-</script>
 <body>
-    <div style="position:fixed; top:12px; right:12px; z-index:9999; display:flex; gap:8px; align-items:center; background:#fff; padding:6px 12px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.1);">
-  <span id="userEmail" style="font-size:12px; color:#64748b; font-family:Inter,sans-serif;"></span>
-  <button onclick="fazerLogout()" style="background:#ef4444; color:#fff; border:0; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif;">Sair</button>
-</div>
-
-<script>
-  function fazerLogout(){
-    if(confirm('Deseja sair do relatório?')){
-      localStorage.removeItem('gotrue.user');
-      localStorage.removeItem('nf_jwt');
-      localStorage.removeItem('gotrue.user:');
-      if(window.netlifyIdentity){ 
-        try{ window.netlifyIdentity.logout(); }catch(e){}
-      }
-      window.location.href = '/login.html';
-    }
-  }
-  // Mostra o e-mail de quem está logado
-  try{
-    const u = JSON.parse(localStorage.getItem('gotrue.user'));
-    if(u && u.email){
-      document.getElementById('userEmail').innerText = u.email;
-    } else if(u && u.token && u.token.email){
-      document.getElementById('userEmail').innerText = u.token.email;
-    }
-  }catch(e){}
-</script>
     <div class="topbar">
         <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
         <button class="btn sec" onclick="salvarHTML()">💾 Salvar em HTML</button>
@@ -514,12 +453,12 @@
             </div>
 
             <div class="sec" id="sec-fotos">
-                <h2>4. Registro Fotográfico</h2>
-                <div class="foto-drop" id="drop">
-                    <b>📸 Clique ou arraste as fotos aqui</b><br><small>JPG / PNG</small>
-                    <input type="file" id="f" multiple accept="image/*" style="display:none">
-                </div>
-                <div class="foto-grid" id="grid"></div>
+                    <h2>4. Registro Fotográfico</h2>
+                    <div class="foto-drop" id="drop">
+                        <b>📸 Clique ou arraste as fotos aqui</b><br><small>JPG / PNG</small>
+                        <input type="file" id="f" multiple accept="image/*" style="display:none">
+                    </div>
+                    <div class="foto-grid" id="grid"></div>
             </div>
 
             <div class="sec sec-small keep-section"><h2>5. Informações do Serviço</h2><textarea id="infoServ" class="campo"></textarea></div>
@@ -537,13 +476,42 @@
         var h = new Date().toISOString().slice(0, 10);
         document.getElementById('dataV').value = h;
         function salvarHTML() {
-            document.querySelectorAll('input.campo, input.titulo, input.subtitulo').forEach(function (i) { i.setAttribute('value', i.value); });
-            document.querySelectorAll('textarea.campo').forEach(function (ta) { ta.textContent = ta.value; });
-            var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            /* Salva uma cópia autônoma, sem depender de login/servidor/rota. */
+            var clone = document.documentElement.cloneNode(true);
+
+            clone.querySelectorAll('input.campo, input.titulo, input.subtitulo').forEach(function (i) {
+                i.setAttribute('value', i.value);
+            });
+            clone.querySelectorAll('textarea.campo').forEach(function (ta) {
+                ta.textContent = ta.value;
+            });
+            clone.querySelectorAll('select').forEach(function (sel) {
+                Array.from(sel.options).forEach(function (op) { op.selected = (op.value === sel.value); });
+            });
+
+            /* Remove elementos de autenticação se uma versão hospedada os tiver injetado. */
+            clone.querySelectorAll('[data-auth], [data-login], [data-logout], [data-action="logout"], [data-action="sair"], .logout, .btn-sair, .sair').forEach(function (el) {
+                if (!el.closest('script')) el.remove();
+            });
+            clone.querySelectorAll('a[href]').forEach(function (a) {
+                var href = a.getAttribute('href') || '';
+                if (/login|logout|signin|signout/i.test(href)) a.removeAttribute('href');
+            });
+
+            var meta = clone.ownerDocument.createElement('meta');
+            meta.name = 'rdo-standalone';
+            meta.content = 'true';
+            clone.querySelector('head').appendChild(meta);
+
+            var html = '<!DOCTYPE html>\n' + clone.outerHTML;
             var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             var nome = (document.getElementById('obra').value || 'Relatorio') + '_' + h;
-            var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome.replace(/[^a-zA-Z0-9_-]/g, '_') + '.html';
-            document.body.appendChild(a); a.click(); setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 500);
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = nome.replace(/[^a-zA-Z0-9_-]/g, '_') + '.html';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 500);
         }
         function limparTudo() {
             if (!confirm('Limpar tudo?')) return;
@@ -589,6 +557,7 @@
          */
         var printAdjustTimer = null;
         var savedPhotoStyles = new Map();
+        var savedTextareaStyles = new Map();
         var savedPrintSpacerHeight = '';
 
         function salvarAlturaRodape() {
@@ -604,6 +573,39 @@
             savedPrintSpacerHeight = '';
         }
 
+        function salvarEstilosCampos() {
+            savedTextareaStyles.clear();
+            document.querySelectorAll('textarea.campo').forEach(function(ta) {
+                savedTextareaStyles.set(ta, {
+                    height: ta.style.height,
+                    minHeight: ta.style.minHeight,
+                    overflow: ta.style.overflow,
+                    resize: ta.style.resize
+                });
+            });
+        }
+
+        function ajustarCamposParaImpressao() {
+            document.querySelectorAll('textarea.campo').forEach(function(ta) {
+                ta.style.height = 'auto';
+                ta.style.minHeight = '0';
+                ta.style.overflow = 'hidden';
+                ta.style.resize = 'none';
+                var h = Math.ceil(ta.scrollHeight);
+                if (h > 0) ta.style.height = h + 'px';
+            });
+        }
+
+        function restaurarEstilosCampos() {
+            savedTextareaStyles.forEach(function(styles, ta) {
+                ta.style.height = styles.height;
+                ta.style.minHeight = styles.minHeight;
+                ta.style.overflow = styles.overflow;
+                ta.style.resize = styles.resize;
+            });
+            savedTextareaStyles.clear();
+        }
+
         function ajustarRodapeParaUltimaPagina() {
             var report = document.querySelector('.report');
             var spacer = document.querySelector('.print-spacer');
@@ -611,37 +613,53 @@
             if (!report || !spacer || !footer) return;
 
             /*
-             * A @page usa 10mm no topo e 15mm no rodapé. A área útil é,
-             * portanto, 272mm. O report começa no topo da área imprimível.
-             * Calculamos em coordenadas reais do documento, sem usar a posição
-             * do próprio rodapé como referência.
+             * O rodapé é o último elemento do relatório. Em impressão,
+             * precisamos preencher somente o espaço que sobra NA ÚLTIMA
+             * página. A área útil do A4 é 272mm porque @page usa
+             * 10mm no topo e 15mm embaixo.
+             *
+             * Importante: não usamos a altura do .report nem o scrollHeight,
+             * porque ambos incluem o próprio rodapé e podem fazer o cálculo
+             * errar a página. Medimos o ponto exato onde o spacer começa.
              */
             var pxPerMm = 96 / 25.4;
-            var pageHeight = 297 * pxPerMm;
-            var topMargin = 10 * pxPerMm;
-            var bottomMargin = 15 * pxPerMm;
-            var usable = pageHeight - topMargin - bottomMargin;
+            var usableHeight = (297 - 10 - 15) * pxPerMm;
 
             var reportTop = report.getBoundingClientRect().top + window.scrollY;
-            var contentBottom = spacer.getBoundingClientRect().top + window.scrollY;
+            var spacerTop = spacer.getBoundingClientRect().top + window.scrollY;
             var footerH = footer.getBoundingClientRect().height;
 
-            // Como o report começa dentro da área imprimível, cada página
-            // acrescenta exatamente a área útil da folha.
-            var relativeContentBottom = Math.max(0, contentBottom - reportTop);
-            var pageIndex = Math.max(0, Math.ceil(relativeContentBottom / usable) - 1);
-            var lastPageBottom = reportTop + (pageIndex + 1) * usable;
+            if (!isFinite(reportTop) || !isFinite(spacerTop) || !isFinite(footerH)) return;
 
-            // O rodapé termina no fim da área útil da última página.
-            var desiredSpacer = lastPageBottom - contentBottom - footerH;
-            if (!isFinite(desiredSpacer) || desiredSpacer < 0) desiredSpacer = 0;
+            /*
+             * A paginação começa na borda superior da área de conteúdo do
+             * relatório. O spacer está exatamente antes do rodapé.
+             */
+            var contentOffset = Math.max(0, spacerTop - reportTop);
+            var pageIndex = Math.floor((contentOffset + 0.5) / usableHeight);
+            var pageStart = reportTop + pageIndex * usableHeight;
+            var pageEnd = pageStart + usableHeight;
 
-            spacer.style.setProperty('--print-spacer-height', Math.floor(desiredSpacer) + 'px');
+            /* Espaço que falta para o rodapé terminar exatamente no fim
+             * da área imprimível da última página. */
+            var desiredSpacer = pageEnd - spacerTop - footerH;
+
+            /* Se o arredondamento colocar o rodapé além do fim da página,
+             * tenta a página seguinte em vez de criar uma quebra. */
+            if (desiredSpacer < 0) {
+                pageEnd += usableHeight;
+                desiredSpacer = pageEnd - spacerTop - footerH;
+            }
+
+            if (!isFinite(desiredSpacer)) desiredSpacer = 0;
+            desiredSpacer = Math.max(0, Math.floor(desiredSpacer));
+
+            spacer.style.setProperty('--print-spacer-height', desiredSpacer + 'px');
         }
 
         function salvarEstilosFotos() {
             savedPhotoStyles.clear();
-            document.querySelectorAll('#grid .foto-card img').forEach(function (img) {
+            document.querySelectorAll('#grid .foto-card img').forEach(function(img){
                 savedPhotoStyles.set(img, {
                     height: img.style.height,
                     aspectRatio: img.style.aspectRatio,
@@ -651,7 +669,7 @@
         }
 
         function restaurarEstilosFotos() {
-            savedPhotoStyles.forEach(function (styles, img) {
+            savedPhotoStyles.forEach(function(styles, img){
                 img.style.height = styles.height;
                 img.style.aspectRatio = styles.aspectRatio;
                 img.style.objectFit = styles.objectFit;
@@ -667,7 +685,7 @@
             var cards = Array.from(grid.querySelectorAll('.foto-card'));
             if (!cards.length) return;
 
-            var imgs = cards.map(function (card) { return card.querySelector('img'); }).filter(Boolean);
+            var imgs = cards.map(function(card){ return card.querySelector('img'); }).filter(Boolean);
             if (!imgs.length) return;
 
             var mmPx = 96 / 25.4;
@@ -697,14 +715,14 @@
             var gap = parseFloat(gridCS.rowGap || gridCS.gap) || 0;
 
             var legendH = 0;
-            cards.forEach(function (card) {
+            cards.forEach(function(card){
                 var leg = card.querySelector('.leg');
                 if (leg) legendH = Math.max(legendH, leg.getBoundingClientRect().height);
             });
 
             var fixed = paddingTop + titleH + titleMB + paddingBottom +
-                (cards.length > 1 ? gap * (cards.length - 1) : 0) +
-                legendH * cards.length + 2;
+                        (cards.length > 1 ? gap * (cards.length - 1) : 0) +
+                        legendH * cards.length + 2;
 
             var imageH = (remaining - fixed) / cards.length;
             var width = imgs[0].getBoundingClientRect().width;
@@ -713,46 +731,55 @@
             imageH = Math.min(imageH, maxByRatio);
             imageH = Math.max(120, Math.floor(imageH));
 
-            imgs.forEach(function (img) {
+            imgs.forEach(function(img){
                 img.style.height = imageH + 'px';
                 img.style.aspectRatio = 'auto';
                 img.style.objectFit = 'cover';
             });
         }
 
-        window.addEventListener('beforeprint', function () {
+        window.addEventListener('beforeprint', function(){
             salvarEstilosFotos();
+            salvarEstilosCampos();
             salvarAlturaRodape();
             if (printAdjustTimer) clearTimeout(printAdjustTimer);
-            printAdjustTimer = setTimeout(function () {
+            printAdjustTimer = setTimeout(function(){
                 printAdjustTimer = null;
                 ajustarFotosParaImpressao();
-                requestAnimationFrame(function () {
+                ajustarCamposParaImpressao();
+                requestAnimationFrame(function(){
+                    ajustarCamposParaImpressao();
                     ajustarRodapeParaUltimaPagina();
+                    requestAnimationFrame(ajustarRodapeParaUltimaPagina);
                 });
             }, 50);
         });
 
-        window.addEventListener('afterprint', function () {
+        window.addEventListener('afterprint', function(){
             if (printAdjustTimer) {
                 clearTimeout(printAdjustTimer);
                 printAdjustTimer = null;
             }
             restaurarEstilosFotos();
+            restaurarEstilosCampos();
             restaurarAlturaRodape();
         });
 
         var printMedia = window.matchMedia('print');
         if (printMedia.addEventListener) {
-            printMedia.addEventListener('change', function (e) {
+            printMedia.addEventListener('change', function(e){
                 if (e.matches) {
                     salvarEstilosFotos();
+                    salvarEstilosCampos();
                     if (printAdjustTimer) clearTimeout(printAdjustTimer);
-                    printAdjustTimer = setTimeout(function () {
+                    printAdjustTimer = setTimeout(function(){
                         printAdjustTimer = null;
                         ajustarFotosParaImpressao();
-                        requestAnimationFrame(function () {
+                        ajustarCamposParaImpressao();
+                        requestAnimationFrame(function(){
+                            ajustarCamposParaImpressao();
                             ajustarRodapeParaUltimaPagina();
+                            requestAnimationFrame(ajustarRodapeParaUltimaPagina);
                         });
                     }, 50);
                 } else {
@@ -761,6 +788,7 @@
                         printAdjustTimer = null;
                     }
                     restaurarEstilosFotos();
+                    restaurarEstilosCampos();
                     restaurarAlturaRodape();
                 }
             });
